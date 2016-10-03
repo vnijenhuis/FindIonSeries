@@ -21,8 +21,8 @@ public class GeneralTools {
     public final Double getIntensityThreshold(CommandLine cmd) {
         double threshold = 0.05;
         double divide = 100.0;
-        if (cmd.hasOption("intThreshold")) {
-            String thresholdValue = cmd.getOptionValue("intThreshold").replace("%", "");
+        if (cmd.hasOption("intensity")) {
+            String thresholdValue = cmd.getOptionValue("intensity").replace("\\W", "");
             if (thresholdValue.isEmpty()) {
                 throw new IllegalArgumentException("Please enter a number as input instead of providing no input.\nExamples: 95.0, 95%, 0.95");
             } else if (thresholdValue.matches(".*([a-zA-Z]).*")) {
@@ -33,8 +33,10 @@ public class GeneralTools {
                 threshold = (Double.parseDouble(thresholdValue) / divide);
             }
         } else {
+            System.out.println("Threshold for intensity set to 0.05 (5%)");
             return threshold;
         }
+        System.out.println("Threshold for intensity set to " + threshold + "!");
         return threshold;
     }
 }

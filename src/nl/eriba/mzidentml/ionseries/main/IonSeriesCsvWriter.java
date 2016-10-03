@@ -4,6 +4,7 @@
  */
 package nl.eriba.mzidentml.ionseries.main;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,20 +22,21 @@ public class IonSeriesCsvWriter {
     /**
      * Writes the output csv file.
      *
+     * @param outputFile
      * @param outputDirectory directory to write the file to
      * @param matchedIonSeries collection of MatchedIonSeries objects.
      * @param datasets list of dataset names.
      * @throws java.io.IOException could not find or access the given file.
      */
-    public final void writeCsv(String outputDirectory, final MatchedIonSeriesCollection matchedIonSeries) throws IOException {
+    public final void writeCsv(File outputFile, final MatchedIonSeriesCollection matchedIonSeries) throws IOException {
         InputTools test = new InputTools();
         FileWriter writer;
-        if (test.isFile(outputDirectory)) {
-            writer = new FileWriter(outputDirectory, true);
-            System.out.println("Writing data to existing file: " + outputDirectory);
+        if (test.isFile(outputFile.toString())) {
+            writer = new FileWriter(outputFile, true);
+            System.out.println("Writing data to existing file: " + outputFile);
         } else {
-            writer = new FileWriter(outputDirectory);
-            System.out.println("Writing output to " + outputDirectory);
+            writer = new FileWriter(outputFile);
+            System.out.println("Writing output to " + outputFile);
         }
         String delimiter = ",";
         String lineEnding = "\n";
@@ -46,7 +48,7 @@ public class IonSeriesCsvWriter {
         }
         writer.flush();
         writer.close();
-        System.out.println("Finished writing to " + outputDirectory);
+        System.out.println("Finished writing to " + outputFile);
     }
 
     /**

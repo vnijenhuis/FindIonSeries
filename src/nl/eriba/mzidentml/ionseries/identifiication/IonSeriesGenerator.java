@@ -46,19 +46,25 @@ import uk.ac.ebi.jmzidml.xml.io.MzIdentMLUnmarshaller;
 public class IonSeriesGenerator implements Callable{
 
     private final Double userIntensityThreshold;
-    private final SpectrumIdentificationResult spectrumResult;
+    
+    /*8
+    
+    */
     private final SpectrumIdentificationItem spectrumItem;
+    
+    /**
+     * 
+     */
     private final UniquePeptideCollection uniquePeptideCountList;
-        /**
+    /**
      * mzid format file reader.
      *
      * @param spectrumResult
      * @param spectrumItem
      * @param intensityThreshold
      */
-    public IonSeriesGenerator(final SpectrumIdentificationResult spectrumResult, final SpectrumIdentificationItem spectrumItem, final UniquePeptideCollection uniquePeptideCountList, final Double intensityThreshold){
+    public IonSeriesGenerator( final SpectrumIdentificationItem spectrumItem, final UniquePeptideCollection uniquePeptideCountList, final Double intensityThreshold){
         this.userIntensityThreshold = intensityThreshold;
-        this.spectrumResult = spectrumResult;
         this.spectrumItem = spectrumItem;
         this.uniquePeptideCountList = uniquePeptideCountList;
     }
@@ -76,22 +82,25 @@ public class IonSeriesGenerator implements Callable{
         System.out.println("Reading given file: " + mzIdFile);
         //Unmarshaller that transforms storage data format to a memory format
         MzIdentMLUnmarshaller unmarshaller = new MzIdentMLUnmarshaller(mzIdentMLFile);
+        System.out.println("Retrieving <SpectrumIdentificationList> element...");
         SpectrumIdentificationList spectrumIdList = unmarshaller.unmarshal(MzIdentMLElement.SpectrumIdentificationList);
         SequenceCollection sequenceCollection = unmarshaller.unmarshal(SequenceCollection.class);
         Collections.sort(spectrumIdList.getSpectrumIdentificationResult(), new SortSpectrumResultBySequence());
         ExecutorService executor = Executors.newFixedThreadPool(threads);
+        System.out.println("Retrieving <PeptideEvidence> elements...");
         List<PeptideEvidence> peptideEvidenceList = sequenceCollection.getPeptideEvidence();
+        System.out.println("Creating unique peptide collection...");
         MzIdPeptideCollection peptideCollection = createPeptideCollection(sequenceCollection.getPeptide());
         SingleDatabaseReferenceCollection singleDatabaseReferenceCollection = createSequenceDatabaseReferenceCollection(peptideEvidenceList, peptideCollection);
         UniquePeptideCollection createUniquePeptideCountList = createUniquePeptideCountList(singleDatabaseReferenceCollection);
         MatchedIonSeriesCollection matchedIonSeriesCollection = new MatchedIonSeriesCollection();
         Integer count = 0;
-        System.out.println("Starting identification of spectrum results.");
+        System.out.println("Starting identification of ion series...");
         for (SpectrumIdentificationResult spectrumIdResult : spectrumIdList.getSpectrumIdentificationResult()) {
             count++;
             for (SpectrumIdentificationItem specturmIdItem: spectrumIdResult.getSpectrumIdentificationItem()) {
-                if (spectrumItem.isPassThreshold()) {
-                    Callable<MatchedIonSeries> callable = new IonSeriesGenerator(spectrumIdResult, specturmIdItem, createUniquePeptideCountList, intensityThreshold);
+                if (specturmIdItem.isPassThreshold()) {
+                    Callable<MatchedIonSeries> callable = new IonSeriesGenerator(specturmIdItem, createUniquePeptideCountList, intensityThreshold);
                     //Collects the output from the call function
                     Future<MatchedIonSeries> future = executor.submit(callable);
                     MatchedIonSeries matchedIonSeries = future.get();
@@ -99,10 +108,10 @@ public class IonSeriesGenerator implements Callable{
                 }
             }
             if (count % 2000 == 0) {
-                System.out.println("Matched data for " + count + " entries.");
+                System.out.println("Matched data for " + count + " <SpectrumIdentificationResult> elements.");
             }
         }
-        System.out.println("Matched data for " + count + " entries.");
+        System.out.println("Matched data for " + count + " <SpectrumIdentificationResult> elements.");
         return matchedIonSeriesCollection;
     }
 

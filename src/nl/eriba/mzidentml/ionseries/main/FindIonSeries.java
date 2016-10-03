@@ -5,6 +5,7 @@
  */
 package nl.eriba.mzidentml.ionseries.main;
 
+import java.io.File;
 import nl.eriba.mzidentml.ionseries.tools.GeneralTools;
 import nl.eriba.mzidentml.ionseries.tools.InputTools;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.xml.sax.SAXException;
 
@@ -51,6 +53,50 @@ public class FindIonSeries {
     private String separator;
     private InputTools inputTools;
     private GeneralTools generalTools;
+/**
+     * Defines the PeptideMzIdentMLIdentification class.
+     */
+    private FindIonSeries() {
+        //Create new commandline options.
+        commandlineOptions = new Options();
+        //Creates a help parameter.
+        Option help = Option.builder("h")
+                .longOpt("help")
+                .hasArg(false)
+                .desc("Help function to display all commandline options.")
+                .optionalArg(true)
+                .build();
+        commandlineOptions.addOption(help);
+        //Path to the uniprot mRNASeq data.
+        Option mzidMainInput = Option.builder("mzid")
+                .hasArg()
+                .desc("Path to master file. (C:/Users/f103013/Documents/vnijenhuis_docs/1D2DCombined/Entry/mzid_main_entry.txt)")
+                .build();
+        commandlineOptions.addOption(mzidMainInput);
+        //Path and name of the output file.
+        Option output = Option.builder("output")
+                .hasArg()
+                .desc("Path to write output file(s) to.  (C:/Users/f103013/Documents/Output).")
+                .build();
+        commandlineOptions.addOption(output);
+        //Amount of threads used for this program.
+        Option thread = Option.builder("threads")
+                .hasArg()
+                .optionalArg(true)
+                .desc("Amount of threads to use for this execution. (DEFAULT: 1 thread)")
+                .build();
+        commandlineOptions.addOption(thread);
+        Option outputType = Option.builder("intensity")
+                .hasArgs()
+                .optionalArg(true)
+                .desc("Requires intensity threshold value. Examples: 5%, 0.05, 5")
+                .build();
+        commandlineOptions.addOption(outputType);
+        //Implements the input tools class.
+        inputTools = new InputTools();
+        //Implements the general tools class.
+        generalTools = new GeneralTools();
+    }
 
     /**
      * Starts the identification process of mzid data.
@@ -89,11 +135,9 @@ public class FindIonSeries {
             separator = getSeparator();
             //Read input file
             if (inputTools.isTxtFile(inputFile)) {
-                String[] folders = inputFile.split(separator);
-                String method = folders[folders.length - 2];
                 ArrayList<String> entryFileList = reader.readMainTextFile(inputFile);
                 LinkedHashMap<String, ArrayList<String>> mzidEntryMap = reader.createMzIdHashMap(entryFileList, separator);
-                processIonSeries(outputDirectory, method, mzidEntryMap, intensityThreshold, threads);
+                processIonSeries(outputDirectory, mzidEntryMap, intensityThreshold, threads);
             } else {
                 System.out.println("WARNING: given file is not a .txt file: " + inputFile);
             }
@@ -124,16 +168,16 @@ public class FindIonSeries {
      * @return
      */
     private String getSeparator() {
-        String os = System.getProperties().getProperty("os.name").toLowerCase();
-        if (os.contains("windows")) {
+        String platform = System.getProperties().getProperty("os.name").toLowerCase();
+        if (platform.contains("windows")) {
             separator = "\\\\"; //windows
-        } else if (os.contains("linux") || os.contains("unix")) {
+        } else if (platform.contains("linux") || platform.contains("unix")) {
             separator = "/"; //linux
         }
         return separator;
     }
 
-    private String generateOutputDirectory(final String file, final String outputDirectory) {
+    private File generateOutputDirectory(final String file, final String outputDirectory) {
         String[] split = file.split(separator);
         String fileName = split[split.length - 1];
         fileName = fileName.substring(0, fileName.indexOf(".mzid"));
@@ -150,11 +194,12 @@ public class FindIonSeries {
                 System.exit(0);
             }
         }
-        return directory;
+        File outputFile = new File(directory.toString() + fileName + "_ionSeries.csv");
+        return outputFile;
     }
 
-    private void processIonSeries(String outputDirectory, String method, LinkedHashMap<String, ArrayList<String>> mzidEntryMap, Double itensityThreshold, Integer threads) throws InterruptedException, ExecutionException, IOException {
-        System.out.println("Starting identification of PeptideShaker mzid data...");
+    private void processIonSeries(String outputDirectory, LinkedHashMap<String, ArrayList<String>> mzidEntryMap, Double itensityThreshold, Integer threads) throws InterruptedException, ExecutionException, IOException {
+        System.out.println("Starting processing of ion series data...");
         Integer sampleSize = 0;
         for (Map.Entry<String, ArrayList<String>> x : mzidEntryMap.entrySet()) {
             if (sampleSize <= x.getValue().size()) {
@@ -163,11 +208,12 @@ public class FindIonSeries {
         }
         for (Map.Entry<String, ArrayList<String>> mzidList: mzidEntryMap.entrySet()) {
             for (String mzidFile: mzidList.getValue()) {
-                String directory = generateOutputDirectory(mzidFile, outputDirectory);
-                IonSeriesGenerator generator = new IonSeriesGenerator(null, null, null, itensityThreshold);
+                File outputFile = generateOutputDirectory(mzidFile, outputDirectory);
+                System.out.println("Processing file " + mzidFile);
+                IonSeriesGenerator generator = new IonSeriesGenerator(null, null, itensityThreshold);
                 MatchedIonSeriesCollection generateIonSeries = generator.generateIonSeries(mzidFile, itensityThreshold, threads);
                 IonSeriesCsvWriter writer = new IonSeriesCsvWriter();
-                writer.writeCsv(directory, generateIonSeries);
+                writer.writeCsv(outputFile, generateIonSeries);
             }
         }
     }
