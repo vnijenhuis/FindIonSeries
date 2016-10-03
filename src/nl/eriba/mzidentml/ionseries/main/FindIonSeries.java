@@ -5,7 +5,6 @@
  */
 package nl.eriba.mzidentml.ionseries.main;
 
-import java.io.File;
 import nl.eriba.mzidentml.ionseries.tools.GeneralTools;
 import nl.eriba.mzidentml.ionseries.tools.InputTools;
 import java.io.IOException;
@@ -177,7 +176,7 @@ public class FindIonSeries {
         return separator;
     }
 
-    private File generateOutputDirectory(final String file, final String outputDirectory) {
+    private String generateOutputDirectory(final String file, final String outputDirectory) {
         String[] split = file.split(separator);
         String fileName = split[split.length - 1];
         fileName = fileName.substring(0, fileName.indexOf(".mzid"));
@@ -194,8 +193,7 @@ public class FindIonSeries {
                 System.exit(0);
             }
         }
-        File outputFile = new File(directory.toString() + fileName + "_ionSeries.csv");
-        return outputFile;
+        return directory;
     }
 
     private void processIonSeries(String outputDirectory, LinkedHashMap<String, ArrayList<String>> mzidEntryMap, Double itensityThreshold, Integer threads) throws InterruptedException, ExecutionException, IOException {
@@ -208,12 +206,12 @@ public class FindIonSeries {
         }
         for (Map.Entry<String, ArrayList<String>> mzidList: mzidEntryMap.entrySet()) {
             for (String mzidFile: mzidList.getValue()) {
-                File outputFile = generateOutputDirectory(mzidFile, outputDirectory);
+                String directory = generateOutputDirectory(mzidFile, outputDirectory);
                 System.out.println("Processing file " + mzidFile);
                 IonSeriesGenerator generator = new IonSeriesGenerator(null, null, itensityThreshold);
                 MatchedIonSeriesCollection generateIonSeries = generator.generateIonSeries(mzidFile, itensityThreshold, threads);
                 IonSeriesCsvWriter writer = new IonSeriesCsvWriter();
-                writer.writeCsv(outputFile, generateIonSeries);
+                writer.writeCsv(directory, generateIonSeries);
             }
         }
     }

@@ -4,7 +4,6 @@
  */
 package nl.eriba.mzidentml.ionseries.main;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,16 +21,16 @@ public class IonSeriesCsvWriter {
     /**
      * Writes the output csv file.
      *
-     * @param outputFile
      * @param outputDirectory directory to write the file to
      * @param matchedIonSeries collection of MatchedIonSeries objects.
      * @param datasets list of dataset names.
      * @throws java.io.IOException could not find or access the given file.
      */
-    public final void writeCsv(File outputFile, final MatchedIonSeriesCollection matchedIonSeries) throws IOException {
+    public final void writeCsv(String outputDirectory, final MatchedIonSeriesCollection matchedIonSeries) throws IOException {
+        String outputFile = outputDirectory + "ion-series.csv";
         InputTools test = new InputTools();
         FileWriter writer;
-        if (test.isFile(outputFile.toString())) {
+        if (test.isFile(outputFile)) {
             writer = new FileWriter(outputFile, true);
             System.out.println("Writing data to existing file: " + outputFile);
         } else {
