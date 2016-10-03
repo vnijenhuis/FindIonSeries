@@ -141,18 +141,19 @@ public class IonSeriesGenerator implements Callable{
             if (userIntensityThreshold >= intensityThreshold) {
                 intensityThreshold = userIntensityThreshold;
             }
+            Double highestPeakIntensity = 0.0;
             //Test peakIntensity versus the specified threshold.
             for (Float intensityValue : measureIntensity.getValues()) {
                 double intensity = intensityValue;
                 Double peakIntensity = intensity * intensityThreshold;
-                if (peakIntensity > intensityThreshold) {
-                    intensityThreshold = peakIntensity;
+                if (peakIntensity > highestPeakIntensity) {
+                    highestPeakIntensity = peakIntensity;
                 }
             }
             //Test if ion intensity passes the user specified threshold.
             for (Float intensityValue : measureIntensity.getValues()) {
                 double intensity = intensityValue;
-                if (intensity >= intensityThreshold) {
+                if (intensity >= highestPeakIntensity) {
                     passedIntensityThreshold.add(true);
                 } else {
                     passedIntensityThreshold.add(false);
@@ -184,6 +185,7 @@ public class IonSeriesGenerator implements Callable{
         ArrayList<Integer> combinedIonIndices = new ArrayList<>(sequenceLength);
         ArrayList<Integer> finalIndexList;
         for (MzIdIonFragment ionFragment : ionFragmentList) {
+
             String name = ionFragment.getName();
             List<Integer> indexList = ionFragment.getIndexList();
             ArrayList<Boolean> intensityValues = ionFragment.getItensityValues();
@@ -191,7 +193,7 @@ public class IonSeriesGenerator implements Callable{
             if (intensityValues.size() == indexList.size()) {
                 for (int i = 0; i < indexList.size(); i++) {
                     Integer listIndex = indexList.get(i);
-                    Integer sequenceIndex = listIndex - 1;
+                    Integer sequenceIndex = listIndex;
                     if (intensityValues.get(i)) {
                         if (name.contains("frag: y ion")) {
                             if (!yIonIndices.contains(sequenceIndex)) {
