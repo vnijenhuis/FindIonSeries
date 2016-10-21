@@ -1,24 +1,25 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit
  */
 package nl.eriba.mzidentml.collections;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import nl.eriba.mzidentml.ionseries.objects.UniquePeptideEntry;
+import nl.eriba.mzidentml.ionseries.objects.CombinedPeptideEntry;
 
 /**
+ * Defines a collection of UniquePeptideEntry objects.
  *
- * @author f103013
+ * @author vnijenhuis
  */
 public class UniquePeptideCollection {
-    
+
     /**
      * Creates an ArrayList for UniquePeptideEntry objects.
      */
-    private final ArrayList<UniquePeptideEntry> uniquePeptideEntries;
+    private final ArrayList<CombinedPeptideEntry> uniquePeptideEntries;
 
     /**
      * ArrayList of UniquePeptideEntry objects.
@@ -32,7 +33,7 @@ public class UniquePeptideCollection {
      *
      * @param uniquePeptideEntry UniquePeptideEntry object.
      */
-    public final void addUniquePeptideEntry(final UniquePeptideEntry uniquePeptideEntry) {
+    public final void addUniquePeptideEntry(final CombinedPeptideEntry uniquePeptideEntry) {
         uniquePeptideEntries.add(uniquePeptideEntry);
     }
 
@@ -41,7 +42,7 @@ public class UniquePeptideCollection {
      *
      * @param uniquePeptideEntry UniquePeptideEntry object.
      */
-    public final void removeUniquePeptideEntry(final UniquePeptideEntry uniquePeptideEntry) {
+    public final void removeUniquePeptideEntry(final CombinedPeptideEntry uniquePeptideEntry) {
         uniquePeptideEntries.remove(uniquePeptideEntry);
     }
 
@@ -50,45 +51,27 @@ public class UniquePeptideCollection {
      *
      * @return ArrayList of UniquePeptideEntry objects.
      */
-    public final ArrayList<UniquePeptideEntry> getUniquePeptideList() {
+    public final ArrayList<CombinedPeptideEntry> getUniquePeptideList() {
         return uniquePeptideEntries;
-    }
-    
-    /**
-     * 
-     * @return 
-     */
-    static Comparator<UniquePeptideEntry> getSingleProteinAccessionComparator() {
-        return new Comparator<UniquePeptideEntry>() {
-            @Override
-            public int compare(UniquePeptideEntry o1, UniquePeptideEntry o2) {
-                return o1.getAccessionList().get(0).compareTo(o1.getAccessionList().get(0));
-            }
-        };
     }
 
     /**
-     * 
+     * Compares peptide sequences with eachother.
+     *
+     * @return Integer value based on compared sequences.
      */
-    public final void sortOnSingleProteinAccession() {
-        Collections.sort(this.uniquePeptideEntries, getSingleProteinAccessionComparator());
-    }
-    
-    /**
-     * 
-     * @return 
-     */
-    static Comparator<UniquePeptideEntry> sortOnPeptideSequenceComparator() {
-        return new Comparator<UniquePeptideEntry>() {
+    static Comparator<CombinedPeptideEntry> sortOnPeptideSequenceComparator() {
+        return new Comparator<CombinedPeptideEntry>() {
             @Override
-            public int compare(UniquePeptideEntry o1, UniquePeptideEntry o2) {
+            public int compare(CombinedPeptideEntry o1, CombinedPeptideEntry o2) {
                 return o1.getSequence().compareTo(o2.getSequence());
             }
         };
     }
 
     /**
-     * 
+     * Compares the peptide sequences of all entries in the given collection and
+     * sorts the collection based on the results.
      */
     public final void sortOnPeptideSequence() {
         Collections.sort(this.uniquePeptideEntries, sortOnPeptideSequenceComparator());

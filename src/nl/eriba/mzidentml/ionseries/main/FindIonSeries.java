@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * @author Vikthor Nijenhuis
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.main;
 
@@ -29,8 +28,10 @@ import org.apache.commons.cli.Options;
 import org.xml.sax.SAXException;
 
 /**
- *
- * @author f103013
+ * FindIonSeries toolkit that is designed to create a csv file of a sample of proteomics data.
+ * This csv file then contains the data of the ion series of a peptide spectrum match.
+ * 
+ * @author vnijenhuis
  */
 public class FindIonSeries {
 /**
@@ -40,6 +41,7 @@ public class FindIonSeries {
      * @throws IOException could not access the given file.
      * @throws InterruptedException process was interrupted.
      * @throws ExecutionException execution failed.
+     * @throws java.text.ParseException
      * @throws org.apache.commons.cli.ParseException
      * @throws org.xml.sax.SAXException
      * @throws javax.xml.parsers.ParserConfigurationException
@@ -48,10 +50,10 @@ public class FindIonSeries {
         FindIonSeries peptideIdentification = new FindIonSeries();
         peptideIdentification.startIonSeriesIdentification(args);
     }
-    private Options commandlineOptions;
+    private final Options commandlineOptions;
     private String separator;
-    private InputTools inputTools;
-    private GeneralTools generalTools;
+    private final InputTools inputTools;
+    private final GeneralTools generalTools;
 /**
      * Defines the PeptideMzIdentMLIdentification class.
      */
@@ -163,8 +165,9 @@ public class FindIonSeries {
     }
 
     /**
-     *
-     * @return
+     * Determines the folder separator based on the system platform.
+     * 
+     * @return folder separator as String.
      */
     private String getSeparator() {
         String platform = System.getProperties().getProperty("os.name").toLowerCase();
@@ -176,6 +179,13 @@ public class FindIonSeries {
         return separator;
     }
 
+    /**
+     * Generates an output directory to write files to.
+     * 
+     * @param file file name.
+     * @param outputDirectory directory name.
+     * @return output directory as String.
+     */
     private String generateOutputDirectory(final String file, final String outputDirectory) {
         String[] split = file.split(separator);
         String fileName = split[split.length - 1];
@@ -196,6 +206,17 @@ public class FindIonSeries {
         return directory;
     }
 
+    /**
+     * Processes peptide data and creates files with the ion series data of each peptide spectrum match.
+     * 
+     * @param outputDirectory output directory to write the files to.
+     * @param mzidEntryMap hashmap of mzid files.
+     * @param itensityThreshold user specified or standard minimum intensity threshold.
+     * @param threads amount of threads used to run this tool.
+     * @throws InterruptedException process was interrupted by another task.
+     * @throws ExecutionException 
+     * @throws IOException 
+     */
     private void processIonSeries(String outputDirectory, LinkedHashMap<String, ArrayList<String>> mzidEntryMap, Double itensityThreshold, Integer threads) throws InterruptedException, ExecutionException, IOException {
         System.out.println("Starting processing of ion series data...");
         Integer sampleSize = 0;

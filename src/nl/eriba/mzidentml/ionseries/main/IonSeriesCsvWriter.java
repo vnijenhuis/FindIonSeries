@@ -1,12 +1,11 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.main;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import nl.eriba.mzidentml.collections.MatchedIonSeriesCollection;
 import nl.eriba.mzidentml.ionseries.objects.MatchedIonSeries;
 import nl.eriba.mzidentml.ionseries.tools.InputTools;
@@ -23,7 +22,6 @@ public class IonSeriesCsvWriter {
      *
      * @param outputDirectory directory to write the file to
      * @param matchedIonSeries collection of MatchedIonSeries objects.
-     * @param datasets list of dataset names.
      * @throws java.io.IOException could not find or access the given file.
      */
     public final void writeCsv(String outputDirectory, final MatchedIonSeriesCollection matchedIonSeries) throws IOException {
@@ -63,6 +61,7 @@ public class IonSeriesCsvWriter {
         header += "Peptide Score" + delimiter;
         header += "#B-ions" + delimiter;
         header += "#Y-ions" + delimiter;
+        header += "#Immonium-ions" + delimiter;
         header += "Complete Ion Series" + delimiter;
         header += "Ion Series Flag" + lineEnding;
         return header;
@@ -80,9 +79,17 @@ public class IonSeriesCsvWriter {
         String row = "";
         row += matchedIonSeries.getPeptideSequence() + delimiter;
         row += matchedIonSeries.getPeptideScore() + delimiter;
-        row += matchedIonSeries.getIonSeriesBion().size() + delimiter;
-        row += matchedIonSeries.getIonSeriesYion().size() + delimiter;
-        row += matchedIonSeries.getIonSeriesIndexList() + delimiter;
+        row += matchedIonSeries.getIonSeriesBIon().size() + delimiter;
+        row += matchedIonSeries.getIonSeriesYIon().size() + delimiter;
+        row += matchedIonSeries.getIonSeriesImmoniumIon().size() + delimiter;
+        for (int i = 0; i < matchedIonSeries.getIonSeriesIndexList().size(); i++) {
+            if (i == 0) {
+                row += matchedIonSeries.getIonSeriesIndexList().get(i);
+            } else {
+                row += ":" + matchedIonSeries.getIonSeriesIndexList().get(i);
+            }
+        }
+        row += delimiter;
         row += matchedIonSeries.getIonSeriesFlag() + lineEnding;
         return row;
     }

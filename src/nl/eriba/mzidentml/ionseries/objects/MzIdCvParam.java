@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.objects;
 

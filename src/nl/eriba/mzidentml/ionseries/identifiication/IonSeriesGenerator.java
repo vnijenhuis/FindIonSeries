@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * @author Vikthor Nijenhuis
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.identifiication;
 
@@ -24,7 +23,7 @@ import nl.eriba.mzidentml.ionseries.objects.MzIdModification;
 import nl.eriba.mzidentml.ionseries.objects.MzIdPeptide;
 import nl.eriba.mzidentml.ionseries.objects.MzIdSubstituteModification;
 import nl.eriba.mzidentml.ionseries.objects.SingleDatabaseReference;
-import nl.eriba.mzidentml.ionseries.objects.UniquePeptideEntry;
+import nl.eriba.mzidentml.ionseries.objects.CombinedPeptideEntry;
 import uk.ac.ebi.jmzidml.MzIdentMLElement;
 import uk.ac.ebi.jmzidml.model.mzidml.CvParam;
 import uk.ac.ebi.jmzidml.model.mzidml.FragmentArray;
@@ -40,41 +39,47 @@ import uk.ac.ebi.jmzidml.model.mzidml.SubstitutionModification;
 import uk.ac.ebi.jmzidml.xml.io.MzIdentMLUnmarshaller;
 
 /**
+ * Generates the ion series of each SpectrumIdentificationItem.
  *
- * @author f103013
+ * @author vnijenhuis
  */
-public class IonSeriesGenerator implements Callable{
+public class IonSeriesGenerator implements Callable {
 
-    private final Double userIntensityThreshold;
-    
-    /*8
-    
-    */
-    private final SpectrumIdentificationItem spectrumItem;
-    
     /**
-     * 
+     * Specified signal intensity threshold.
+     */
+    private final Double userIntensityThreshold;
+
+    /**
+     * SpectrumIdentificationItem object.
+     */
+    private final SpectrumIdentificationItem spectrumItem;
+
+    /**
+     * List of unique peptides and the data corresponding to these peptides.
      */
     private final UniquePeptideCollection uniquePeptideCountList;
+
     /**
      * mzid format file reader.
      *
-     * @param spectrumResult
-     * @param spectrumItem
-     * @param intensityThreshold
+     * @param spectrumItem the given SpectrumIdentificationItem object.
+     * @param uniquePeptideCountList list of UniquePeptideEntry objects.
+     * @param intensityThreshold user specified signal intensity threshold.
      */
-    public IonSeriesGenerator( final SpectrumIdentificationItem spectrumItem, final UniquePeptideCollection uniquePeptideCountList, final Double intensityThreshold){
+    public IonSeriesGenerator(final SpectrumIdentificationItem spectrumItem, final UniquePeptideCollection uniquePeptideCountList, final Double intensityThreshold) {
         this.userIntensityThreshold = intensityThreshold;
         this.spectrumItem = spectrumItem;
         this.uniquePeptideCountList = uniquePeptideCountList;
     }
-    
+
     /**
-     * Collects mzid data by storing the data into a collection of ScanID objects.
+     * Collects mzid data by storing the data into a collection of ScanID
+     * objects.
      *
-     * @param mzIdFile
+     * @param mzIdFile file with the .mzid extension and MzIdentMl format.
      * @param threads amount of threads used for the program.
-     * @param intensityThreshold
+     * @param intensityThreshold user specified signal intensity threshold.
      * @return returns a collection of ScanID objects.
      */
     public MatchedIonSeriesCollection generateIonSeries(final String mzIdFile, final Double intensityThreshold, final Integer threads) throws InterruptedException, ExecutionException {
@@ -86,7 +91,6 @@ public class IonSeriesGenerator implements Callable{
         SpectrumIdentificationList spectrumIdList = unmarshaller.unmarshal(MzIdentMLElement.SpectrumIdentificationList);
         SequenceCollection sequenceCollection = unmarshaller.unmarshal(SequenceCollection.class);
         Collections.sort(spectrumIdList.getSpectrumIdentificationResult(), new SortSpectrumResultBySequence());
-        ExecutorService executor = Executors.newFixedThreadPool(threads);
         System.out.println("Retrieving <PeptideEvidence> elements...");
         List<PeptideEvidence> peptideEvidenceList = sequenceCollection.getPeptideEvidence();
         System.out.println("Creating unique peptide collection...");
@@ -94,13 +98,15 @@ public class IonSeriesGenerator implements Callable{
         SingleDatabaseReferenceCollection singleDatabaseReferenceCollection = createSequenceDatabaseReferenceCollection(peptideEvidenceList, peptideCollection);
         UniquePeptideCollection createUniquePeptideCountList = createUniquePeptideCountList(singleDatabaseReferenceCollection);
         MatchedIonSeriesCollection matchedIonSeriesCollection = new MatchedIonSeriesCollection();
+        //Process data of each SpectrumIdentificationItem.
         Integer count = 0;
         System.out.println("Starting identification of ion series...");
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
         for (SpectrumIdentificationResult spectrumIdResult : spectrumIdList.getSpectrumIdentificationResult()) {
             count++;
-            for (SpectrumIdentificationItem specturmIdItem: spectrumIdResult.getSpectrumIdentificationItem()) {
-                if (specturmIdItem.isPassThreshold()) {
-                    Callable<MatchedIonSeries> callable = new IonSeriesGenerator(specturmIdItem, createUniquePeptideCountList, intensityThreshold);
+            for (SpectrumIdentificationItem spectrumIdItem : spectrumIdResult.getSpectrumIdentificationItem()) {
+                if (spectrumIdItem.isPassThreshold()) {
+                    Callable<MatchedIonSeries> callable = new IonSeriesGenerator(spectrumIdItem, createUniquePeptideCountList, intensityThreshold);
                     //Collects the output from the call function
                     Future<MatchedIonSeries> future = executor.submit(callable);
                     MatchedIonSeries matchedIonSeries = future.get();
@@ -111,61 +117,26 @@ public class IonSeriesGenerator implements Callable{
                 System.out.println("Matched data for " + count + " <SpectrumIdentificationResult> elements.");
             }
         }
+        executor.shutdown();
         System.out.println("Matched data for " + count + " <SpectrumIdentificationResult> elements.");
         return matchedIonSeriesCollection;
     }
 
+    /**
+     * Call function that can be used by a thread to execute the given task.
+     *
+     * @return MatchedIonSeries object.
+     */
     @Override
-    public Object call() throws Exception {
-        String peptideSequence = "";
+    public Object call() {
         String psmScore = "";
-        ArrayList<MzIdIonFragment> ionFragmentList = new ArrayList<>();
-        peptideSequence = spectrumItem.getPeptideRef();
+        String peptideSequence = spectrumItem.getPeptideRef();
         List<IonType> fragmentList = spectrumItem.getFragmentation().getIonType();
         String accessions = getAccessions(peptideSequence);
         //Process all ion fragments of the given peptide amino acid sequence.
-        for (IonType ionType : fragmentList) {
-            List<Integer> indexList = ionType.getIndex();
-            ArrayList<Double> measuredMassToChargeValues = new ArrayList<>();
-            ArrayList<Boolean> passedIntensityThreshold = new ArrayList<>();
-            FragmentArray fragmentArray = ionType.getFragmentArray().get(0);
-            //Gathers measured mass to charge values of each fragment array.
-            for (float fragmentValue : fragmentArray.getValues()) {
-                double measuredMassToCharge = fragmentValue;
-                measuredMassToChargeValues.add(measuredMassToCharge);
-            }
-            //Set standard threshold to 5%.
-            Double intensityThreshold = 0.05;
-            // Calculate the user defined intensity threshold value per peptide sequence.
-            FragmentArray measureIntensity = ionType.getFragmentArray().get(1);
-            if (userIntensityThreshold >= intensityThreshold) {
-                intensityThreshold = userIntensityThreshold;
-            }
-            Double highestPeakIntensity = 0.0;
-            //Test peakIntensity versus the specified threshold.
-            for (Float intensityValue : measureIntensity.getValues()) {
-                double intensity = intensityValue;
-                Double peakIntensity = intensity * intensityThreshold;
-                if (peakIntensity > highestPeakIntensity) {
-                    highestPeakIntensity = peakIntensity;
-                }
-            }
-            //Test if ion intensity passes the user specified threshold.
-            for (Float intensityValue : measureIntensity.getValues()) {
-                double intensity = intensityValue;
-                if (intensity >= highestPeakIntensity) {
-                    passedIntensityThreshold.add(true);
-                } else {
-                    passedIntensityThreshold.add(false);
-                }
-            }
-            //Create MzIdIonFragment object containing the name, indices, m/z values and a true/false list for passing the intensity threshold.
-            String name = ionType.getCvParam().getName();
-            MzIdIonFragment fragment = new MzIdIonFragment(name, indexList, measuredMassToChargeValues, passedIntensityThreshold);
-            ionFragmentList.add(fragment);
-        }
+        ArrayList<MzIdIonFragment> ionFragmentList = createMzIdIonFragmentList(fragmentList);
         //Determines the length of the actual peptide sequence.
-                //Gather psmScore from the cvParam list.
+        //Gather psmScore from the cvParam list.
         List<CvParam> parameterList = spectrumItem.getCvParam();
         for (CvParam parameter : parameterList) {
             if (parameter.getName().contains("PSM score")) {
@@ -184,8 +155,8 @@ public class IonSeriesGenerator implements Callable{
         ArrayList<Integer> yIonIndices = new ArrayList<>(sequenceLength);
         ArrayList<Integer> combinedIonIndices = new ArrayList<>(sequenceLength);
         ArrayList<Integer> finalIndexList;
+        ArrayList<Integer> immoniumIndices = new ArrayList<>(sequenceLength);
         for (MzIdIonFragment ionFragment : ionFragmentList) {
-
             String name = ionFragment.getName();
             List<Integer> indexList = ionFragment.getIndexList();
             ArrayList<Boolean> intensityValues = ionFragment.getItensityValues();
@@ -210,6 +181,13 @@ public class IonSeriesGenerator implements Callable{
                             if (!combinedIonIndices.contains(sequenceIndex)) {
                                 combinedIonIndices.add(sequenceIndex);
                             }
+                        } else if (name.contains("immonium")) {
+                            if (!combinedIonIndices.contains(sequenceIndex)) {
+                                combinedIonIndices.add(sequenceIndex);
+                            }
+                            if (!immoniumIndices.contains(sequenceIndex)) {
+                                immoniumIndices.add(sequenceIndex);
+                            }
                         }
                     }
                 }
@@ -231,15 +209,16 @@ public class IonSeriesGenerator implements Callable{
             finalIndexList = combinedIonIndices;
         }
         Collections.sort(finalIndexList);
-        MatchedIonSeries ionSeries = new MatchedIonSeries(peptideSequence, psmScore, accessions, bIonIndices, yIonIndices, finalIndexList, ionSerieFlag);
+        MatchedIonSeries ionSeries = new MatchedIonSeries(peptideSequence, psmScore, accessions, immoniumIndices, bIonIndices, yIonIndices, finalIndexList, ionSerieFlag);
         return ionSeries;
     }
-    
-        /**
-     * 
-     * @param peptideEvidenceList
-     * @param databaseSequenceCollection
-     * @return 
+
+    /**
+     * Creates a collection of SingleDatabaseReference objects.
+     *
+     * @param peptideEvidenceList list of PeptideEvidence objects from the jmzidentml package.
+     * @param peptideCollection list of MzIdPeptide objects.
+     * @return collection of SingleDatabaseReference objects.
      */
     private SingleDatabaseReferenceCollection createSequenceDatabaseReferenceCollection(final List<PeptideEvidence> peptideEvidenceList, final MzIdPeptideCollection peptideCollection) {
         System.out.println("Creating SequenceDatabaseReference object collection...");
@@ -259,13 +238,13 @@ public class IonSeriesGenerator implements Callable{
                 Integer evidenceId = Integer.parseInt(id);
                 MzIdPeptide newEntry = null;
                 ArrayList<String> modifications = new ArrayList<>();
-                for (MzIdPeptide entry: peptideCollection.getPeptides()) {
+                for (MzIdPeptide entry : peptideCollection.getPeptides()) {
                     if (entry.getModifications().isEmpty() && entry.getSubstituteModifications().isEmpty()) {
                         removeablePeptideEntries.add(entry);
                     } else if (entry.getPeptideSequence().equals(peptideSequence)) {
                         newEntry = entry;
-                        for (MzIdModification modification: entry.getModifications()) {
-                            for (String name: modification.getNames()) {
+                        for (MzIdModification modification : entry.getModifications()) {
+                            for (String name : modification.getNames()) {
                                 if (!modifications.contains(name)) {
                                     modifications.add(name);
                                 }
@@ -274,7 +253,7 @@ public class IonSeriesGenerator implements Callable{
                     }
                 }
                 removeablePeptideEntries.add(newEntry);
-                for (MzIdPeptide x: removeablePeptideEntries) {
+                for (MzIdPeptide x : removeablePeptideEntries) {
                     peptideCollection.getPeptides().remove(x);
                 }
                 SingleDatabaseReference sequenceDatabaseReference = new SingleDatabaseReference(proteinAccession, evidenceId, peptideSequence, start, end, pre, post, modifications);
@@ -283,11 +262,13 @@ public class IonSeriesGenerator implements Callable{
         }
         return sequenceDatabaseReferenceCollection;
     }
-    
+
     /**
-     * 
-     * @param sequenceDatabaseReferenceCollection
-     * @return 
+     * Creates a list of UniquePeptideEntry objects.
+     *
+     * @param sequenceDatabaseReferenceCollection list of
+     * SingleDatabaseReference objects.
+     * @return collection of UniquePeptideEntry objects.
      */
     private UniquePeptideCollection createUniquePeptideCountList(final SingleDatabaseReferenceCollection singleDatabaseReferenceCollection) {
         System.out.println("Creating list for peptide data objects.");
@@ -298,11 +279,7 @@ public class IonSeriesGenerator implements Callable{
         singleDatabaseReferenceCollection.sortOnPeptideSequence();
         //Get first entry sequence.
         String targetSequence = singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList().get(0).getPeptideSequence();
-        String preAminoAcid = singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList().get(0).getPreAminoAcid();
-        String postAminoAcid = singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList().get(0).getPostAminoAcid();
-        Integer startIndex = singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList().get(0).getStartIndex();
-        Integer endIndex = singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList().get(0).getEndIndex();
-        for (SingleDatabaseReference databaseReference: singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList()) {
+        for (SingleDatabaseReference databaseReference : singleDatabaseReferenceCollection.getDatabaseSequenceReferenceList()) {
             //Check if current sequence matches the targetSequence and add accession to given sequence.
             if (databaseReference.getPeptideSequence().equals(targetSequence)) {
                 //if accession is not present add it to the list. Duplicate accessions are not necessary.
@@ -313,22 +290,18 @@ public class IonSeriesGenerator implements Callable{
                     accessionList.add(databaseReference.getProteinAccession());
                 }
             } else {
-                //UniquePeptideAccessionCount object is created that contains the target sequence and the list of accession ids.
+                //UniquePeptideEntry object is created that contains the target sequence and the list of accession ids.
                 Collections.sort(accessionList);
-                UniquePeptideEntry uniquePeptide = new UniquePeptideEntry(targetSequence, accessionList, preAminoAcid, postAminoAcid, startIndex, endIndex);
+                CombinedPeptideEntry uniquePeptide = new CombinedPeptideEntry(targetSequence, accessionList);
                 uniquePeptides.addUniquePeptideEntry(uniquePeptide);
                 accessionList = new ArrayList<>();
                 accessionList.add(databaseReference.getProteinAccession());
                 targetSequence = databaseReference.getPeptideSequence();
-                preAminoAcid = databaseReference.getPreAminoAcid();
-                postAminoAcid = databaseReference.getPostAminoAcid();
-                startIndex = databaseReference.getStartIndex();
-                endIndex = databaseReference.getEndIndex();
             }
         }
         return uniquePeptides;
     }
-    
+
     /**
      * Creates a collection of MzIdPeptide objects.
      *
@@ -385,14 +358,68 @@ public class IonSeriesGenerator implements Callable{
     }
 
     /**
-     * Gathers all accessions per peptide sequence and determines if the peptide is unique to a protein sequence.
+     * Creates a list of MzIdIonFragments that pass the user specified
+     * threshold.
+     *
+     * @param fragmentList list of IonType objects.
+     *
+     * @return filtered list of MzIdIonFragment objects.
+     */
+    final ArrayList<MzIdIonFragment> createMzIdIonFragmentList(List<IonType> fragmentList) {
+        ArrayList<MzIdIonFragment> ionFragmentList = new ArrayList<>();
+        for (IonType ionType : fragmentList) {
+            List<Integer> indexList = ionType.getIndex();
+            ArrayList<Double> measuredMassToChargeValues = new ArrayList<>();
+            ArrayList<Boolean> passedIntensityThreshold = new ArrayList<>();
+            FragmentArray fragmentArray = ionType.getFragmentArray().get(0);
+            //Gathers measured mass to charge values of each fragment array.
+            for (float fragmentValue : fragmentArray.getValues()) {
+                double measuredMassToCharge = fragmentValue;
+                measuredMassToChargeValues.add(measuredMassToCharge);
+            }
+            //Set standard threshold to 5%.
+            Double intensityThreshold = 0.05;
+            // Calculate the user defined intensity threshold value per peptide sequence.
+            FragmentArray measureIntensity = ionType.getFragmentArray().get(1);
+            if (userIntensityThreshold >= intensityThreshold) {
+                intensityThreshold = userIntensityThreshold;
+            }
+            Double highestPeakIntensity = 0.0;
+            //Test peakIntensity versus the specified threshold.
+            for (Float intensityValue : measureIntensity.getValues()) {
+                double intensity = intensityValue;
+                Double peakIntensity = intensity * intensityThreshold;
+                if (peakIntensity > highestPeakIntensity) {
+                    highestPeakIntensity = peakIntensity;
+                }
+            }
+            //Test if ion intensity passes the user specified threshold.
+            for (Float intensityValue : measureIntensity.getValues()) {
+                double intensity = intensityValue;
+                if (intensity >= highestPeakIntensity) {
+                    passedIntensityThreshold.add(true);
+                } else {
+                    passedIntensityThreshold.add(false);
+                }
+            }
+            //Create MzIdIonFragment object containing the name, indices, m/z values and a true/false list for passing the intensity threshold.
+            String name = ionType.getCvParam().getName();
+            MzIdIonFragment fragment = new MzIdIonFragment(name, indexList, measuredMassToChargeValues, passedIntensityThreshold);
+            ionFragmentList.add(fragment);
+        }
+        return ionFragmentList;
+    }
+
+    /**
+     * Gathers all accessions per peptide sequence and determines if the peptide
+     * is unique to a protein sequence.
      *
      * @param sequence peptide sequence.
      * @return EvidenceData with a list of accessions and uniqueness flag.
      */
     public final String getAccessions(final String sequence) {
         String accessions = "";
-        for (UniquePeptideEntry peptide : uniquePeptideCountList.getUniquePeptideList()) {
+        for (CombinedPeptideEntry peptide : uniquePeptideCountList.getUniquePeptideList()) {
             if (peptide.getSequence().equals(sequence)) {
                 for (String accession : peptide.getAccessionList()) {
                     if (accessions.isEmpty()) {
@@ -406,5 +433,5 @@ public class IonSeriesGenerator implements Callable{
         }
         return accessions;
     }
-    
+
 }

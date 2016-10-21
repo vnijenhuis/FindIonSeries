@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.collections;
 
@@ -15,6 +15,7 @@ import nl.eriba.mzidentml.ionseries.objects.SingleDatabaseReference;
  * @author vnijenhuis
  */
 public class SingleDatabaseReferenceCollection {
+
     /**
      * Creates an ArrayList for SingleDatabaseReference objects.
      */
@@ -53,17 +54,18 @@ public class SingleDatabaseReferenceCollection {
     public final ArrayList<SingleDatabaseReference> getDatabaseSequenceReferenceList() {
         return databaseSequences;
     }
-    
-        /**
+
+    /**
      * Returns an ArrayList of SingleDatabaseReference objects.
      */
     public final void clearDatabaseSequenceReferenceList() {
         this.databaseSequences.clear();
     }
-    
+
     /**
-     * 
-     * @return 
+     * Compare protein accessions with eachother.
+     *
+     * @return Integer value based on matching of the two Strings.
      */
     static Comparator<SingleDatabaseReference> getProteinAccessionComparator() {
         return new Comparator<SingleDatabaseReference>() {
@@ -75,15 +77,16 @@ public class SingleDatabaseReferenceCollection {
     }
 
     /**
-     * 
+     * Sorts the collection based on the protein accession String.
      */
     public final void sortOnProteinAccession() {
         Collections.sort(this.databaseSequences, getProteinAccessionComparator());
     }
-    
+
     /**
-     * 
-     * @return 
+     * Compare peptide sequences with eachother.
+     *
+     * @return Integer value based on matching of the two Strings.
      */
     static Comparator<SingleDatabaseReference> getPeptideSequenceComparator() {
         return new Comparator<SingleDatabaseReference>() {
@@ -95,10 +98,9 @@ public class SingleDatabaseReferenceCollection {
     }
 
     /**
-     * 
+     * Sorts the collection based on the peptide sequence String.
      */
     public final void sortOnPeptideSequence() {
         Collections.sort(this.databaseSequences, getPeptideSequenceComparator());
     }
 }
-

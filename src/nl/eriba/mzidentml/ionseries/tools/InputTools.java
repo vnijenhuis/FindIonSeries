@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project ValidInputChecker
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.tools;
 

@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project peptide fragmentation control
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.main;
 

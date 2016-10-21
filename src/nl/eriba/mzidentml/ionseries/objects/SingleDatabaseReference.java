@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.objects;
 
@@ -19,7 +19,8 @@ public class SingleDatabaseReference {
     private final String objectName;
 
     /**
-     * Database Sequence reference. Refers to the MzIdentMLDatabaseSequence object id.
+     * Database Sequence reference. Refers to the MzIdentMLDatabaseSequence
+     * object id.
      */
     private final String proteinAccession;
 
@@ -54,24 +55,29 @@ public class SingleDatabaseReference {
     private String proteinDescripion;
 
     /**
-     * 
+     * List of post-translational modifications.
      */
-    private final ArrayList<String> modificationList;
+    private final ArrayList<String> postTransModificationList;
+
+    /**
+     * PeptideEvidence id reference.
+     */
     private final Integer evidenceId;
 
     /**
      * Defines a SequenceDatabaseReference object.
      *
      * @param proteinAccession the protein accession as String.
+     * @param evidenceId peptide evidence id as Integer.
      * @param peptideSequence peptide sequence as String.
      * @param startIndex start position as Integer.
      * @param endIndex end position as Integer.
      * @param preAminoAcid pre amino acid as String.
      * @param postAminoAcid post amino acid as String.
-     * @param modifications
+     * @param postTransModificationList list of post-translational modifications.
      */
     public SingleDatabaseReference(final String proteinAccession, final Integer evidenceId, final String peptideSequence, final Integer startIndex,
-            final Integer endIndex, final String preAminoAcid, final String postAminoAcid, final ArrayList<String> modifications) {
+            final Integer endIndex, final String preAminoAcid, final String postAminoAcid, final ArrayList<String> postTransModificationList) {
         this.objectName = "SingleDatabaseReference";
         this.evidenceId = evidenceId;
         this.proteinAccession = proteinAccession;
@@ -80,7 +86,7 @@ public class SingleDatabaseReference {
         this.endIndex = endIndex;
         this.preAminoAcid = preAminoAcid;
         this.postAminoAcid = postAminoAcid;
-        this.modificationList = modifications;
+        this.postTransModificationList = postTransModificationList;
         this.proteinDescripion = "";
     }
 
@@ -140,7 +146,7 @@ public class SingleDatabaseReference {
 
     /**
      * Returns the protein description value.
-     * 
+     *
      * @return description protein description as String.
      */
     public String getProteinDescription() {
@@ -149,20 +155,29 @@ public class SingleDatabaseReference {
 
     /**
      * Sets the protein description value.
-     * 
+     *
      * @param description protein description as String.
      */
     public void setProteinDescription(String description) {
         this.proteinDescripion = description;
     }
 
-     /**
+    /**
      * Returns the protein description value.
-     * 
+     *
      * @return description protein description as String.
      */
     public Integer getEvidenceId() {
         return this.evidenceId;
+    }
+
+    /**
+     * Shows the list of post-translational modifications.
+     *
+     * @return ArrayList of post-translational modifications as String.
+     */
+    public ArrayList<String> getPostTranslationalModification() {
+        return this.postTransModificationList;
     }
 
     /**
@@ -172,12 +187,8 @@ public class SingleDatabaseReference {
      */
     @Override
     public String toString() {
-        return this.objectName + "{Protein accession: " + this.getProteinAccession() + ", Peptide sequence list: " + this.getPeptideSequence()
-                + ", Start index: " + this.getStartIndex() + ", End index: " + this.getEndIndex() + ", Pre amino acid: "
-                + this.getPreAminoAcid() + ", Post amino acid: " + this.getPostAminoAcid() + ", Protein Description: " + this.getProteinDescription() + "}";
-    }
-
-    public ArrayList<String> getPostTranslationalModification() {
-        return this.modificationList;
+        return this.objectName + "{Protein accession: " + this.getProteinAccession() + ", Peptide sequence list: " + this.getPeptideSequence()  + ", Start index: " + this.getStartIndex()
+                + ", End index: " + this.getEndIndex() + ", Pre amino acid: " + this.getPreAminoAcid() + ", Post amino acid: " + this.getPostAminoAcid() + ", Protein Description: "
+                + this.getProteinDescription() + ", Post-translational modifications: " + this.getPostTranslationalModification() + "}";
     }
 }

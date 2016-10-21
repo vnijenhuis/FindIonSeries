@@ -1,14 +1,15 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.ionseries.tools;
 
 import org.apache.commons.cli.CommandLine;
 
 /**
- *
- * @author f103013
+ * Defines some general tools for this project.
+ * 
+ * @author vnijenhuis
  */
 public class GeneralTools {
     
@@ -33,7 +34,7 @@ public class GeneralTools {
                 threshold = (Double.parseDouble(thresholdValue) / divide);
             }
         } else {
-            System.out.println("Threshold for intensity set to 0.05 (5%)");
+            System.out.println("Threshold for intensity set to base value of 5% (0.05)");
             return threshold;
         }
         System.out.println("Threshold for intensity set to " + threshold + "!");

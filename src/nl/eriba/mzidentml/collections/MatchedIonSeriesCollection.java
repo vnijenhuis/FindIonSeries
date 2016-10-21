@@ -1,6 +1,6 @@
 /*
  * @author Vikthor Nijenhuis
- * @project Peptide mzIdentML Identfication Module * 
+ * @project FindIonSeries toolkit.
  */
 package nl.eriba.mzidentml.collections;
 
@@ -10,8 +10,9 @@ import java.util.Comparator;
 import nl.eriba.mzidentml.ionseries.objects.MatchedIonSeries;
 
 /**
- *
- * @author f103013
+ * Collection of MatchedIonSeries objects.
+ * 
+ * @author vnijenhuis
  */
 public class MatchedIonSeriesCollection {
     
@@ -55,8 +56,9 @@ public class MatchedIonSeriesCollection {
     }
     
     /**
+     * Compare peptide sequence with eachother.
      * 
-     * @return 
+     * @return Integer value based on matching of the two Strings.
      */
     static Comparator<MatchedIonSeries> sortOnPeptideSequenceComparator() {
         return new Comparator<MatchedIonSeries>() {
@@ -68,7 +70,7 @@ public class MatchedIonSeriesCollection {
     }
 
     /**
-     * 
+     * Sorts the collection based on the peptide sequence String.
      */
     public final void sortOnPeptideSequence() {
         Collections.sort(this.matchedIonSeriesList, sortOnPeptideSequenceComparator());
