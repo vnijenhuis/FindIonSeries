@@ -22,20 +22,47 @@ public class MatchedIonSeries {
      * Flag for the ion series.
      */
     private final Integer ionSeriesFlag;
+
+    /**
+     * Peptide amino acid sequence.
+     */
     private final String peptideSequence;
+
+    /**
+     * Peptide score.
+     */
     private final String peptideScore;
+
+    /**
+     * Protein accesions of this peptide sequence.
+     */
     private final String accessions;
+
+    /**
+     * List of indices covered by B-ions.
+     */
     private final ArrayList<Integer> bIonIndexList;
+
+    /**
+     * List of indices covered by Y-ions.
+     */
     private final ArrayList<Integer> yIonIndexList;
+
+    /**
+     * List of indices covered by immonium-ions.
+     */
     private final ArrayList<Integer> immoniumIndexList;
 
     /**
      * Defines the MatchedIonSeries object.
      *
-     * @param peptideSequence
-     * @param peptideScore
-     * @param accessions
-     * @param indexList contains a list of index numbers.
+     * @param peptideSequence peptide amino acid sequence.
+     * @param peptideScore peptide score.
+     * @param accessions protein accessions.
+     * @param immoniumIndexList list of immonium-ion indices.
+     * @param bIonIndexList list of B-ion indices.
+     * @param yIonIndexList list of Y-ion indices.
+     * @param indexList list of ion indices.
      * @param ionSeriesFlag contains the ion series flag.
      */
     public MatchedIonSeries(final String peptideSequence, final String peptideScore, final String accessions, final ArrayList<Integer> immoniumIndexList, final ArrayList<Integer> bIonIndexList, final ArrayList<Integer> yIonIndexList,
@@ -56,32 +83,34 @@ public class MatchedIonSeries {
      * @return ArrayList of ion series indices as Integers.
      */
     public ArrayList<Integer> getIonSeriesIndexList() {
-        return  this.indexList;
+        return this.indexList;
     }
+
     /**
      * Returns a list of immonium ion series indices.
      *
      * @return ArrayList of b ion series indices as Integers.
      */
     public ArrayList<Integer> getIonSeriesImmoniumIon() {
-        return  this.immoniumIndexList;
+        return this.immoniumIndexList;
     }
-    
+
     /**
      * Returns a list of b ion series indices.
      *
      * @return ArrayList of b ion series indices as Integers.
      */
     public ArrayList<Integer> getIonSeriesBIon() {
-        return  this.bIonIndexList;
+        return this.bIonIndexList;
     }
+
     /*
      * Returns a list of y ion series indices.
      *
      * @return ArrayList of y ion series indices as Integers.
      */
     public ArrayList<Integer> getIonSeriesYIon() {
-        return  this.yIonIndexList;
+        return this.yIonIndexList;
     }
 
     /**
@@ -90,7 +119,7 @@ public class MatchedIonSeries {
      * @return peptide score as String.
      */
     public String getPeptideScore() {
-        return  this.peptideScore;
+        return this.peptideScore;
     }
 
     /**
@@ -99,7 +128,7 @@ public class MatchedIonSeries {
      * @return peptide amino acid sequence as String.
      */
     public String getPeptideSequence() {
-        return  this.peptideSequence;
+        return this.peptideSequence;
     }
 
     /**
@@ -108,9 +137,9 @@ public class MatchedIonSeries {
      * @return ion series flag as Integer.
      */
     public Integer getIonSeriesFlag() {
-        return  this.ionSeriesFlag;
+        return this.ionSeriesFlag;
     }
-    
+
     /**
      * Returns the ion series flag.
      *
@@ -118,11 +147,16 @@ public class MatchedIonSeries {
      */
     public String getProteinAccessions() {
         return this.accessions;
-    }  
+    }
 
+    /**
+     * ToString function that displays the data present in this object.
+     *
+     * @return object data as String.
+     */
     @Override
     public String toString() {
         return "MatchedIonSeries{Peptide Sequence: " + this.getPeptideSequence() + "Peptide Score: " + this.getPeptideScore() + "Protein Accessions: " + this.getProteinAccessions()
-                + ",Immonium ion series indices: " + this.getIonSeriesImmoniumIon() + ", B-ion series indices: " + this.getIonSeriesBIon() + ", y-ion series indices: " + this.getIonSeriesYIon()+ ", Ion series indices: " + this.getIonSeriesIndexList() + ", Ion series flag: " + this.getIonSeriesFlag() + "}";
+                + ",Immonium ion series indices: " + this.getIonSeriesImmoniumIon() + ", B-ion series indices: " + this.getIonSeriesBIon() + ", y-ion series indices: " + this.getIonSeriesYIon() + ", Ion series indices: " + this.getIonSeriesIndexList() + ", Ion series flag: " + this.getIonSeriesFlag() + "}";
     }
 }

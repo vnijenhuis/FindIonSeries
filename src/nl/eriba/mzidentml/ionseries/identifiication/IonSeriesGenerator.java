@@ -81,6 +81,8 @@ public class IonSeriesGenerator implements Callable {
      * @param threads amount of threads used for the program.
      * @param intensityThreshold user specified signal intensity threshold.
      * @return returns a collection of ScanID objects.
+     * @throws java.lang.InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
     public MatchedIonSeriesCollection generateIonSeries(final String mzIdFile, final Double intensityThreshold, final Integer threads) throws InterruptedException, ExecutionException {
         File mzIdentMLFile = new File(mzIdFile);
@@ -362,7 +364,6 @@ public class IonSeriesGenerator implements Callable {
      * threshold.
      *
      * @param fragmentList list of IonType objects.
-     *
      * @return filtered list of MzIdIonFragment objects.
      */
     final ArrayList<MzIdIonFragment> createMzIdIonFragmentList(List<IonType> fragmentList) {
