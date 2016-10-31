@@ -56,6 +56,15 @@ public class MatchedIonSeriesCollection {
     }
     
     /**
+     * Adds a collection of MatchedIonSeries objects to an existing collection.
+     *
+     * @param ionSeriesCollection collection of MatchedIonSeries objects to add to this collection.
+     */
+    public final void addMatchedIonSeriesCollection(MatchedIonSeriesCollection ionSeriesCollection) {
+        this.matchedIonSeriesList.addAll(ionSeriesCollection.getMatchedIonSeriesList());
+    }
+    
+    /**
      * Compare peptide sequence with eachother.
      * 
      * @return Integer value based on matching of the two Strings.

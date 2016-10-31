@@ -131,7 +131,7 @@ public class IonSeriesGenerator implements Callable {
      */
     @Override
     public Object call() {
-        String psmScore = "";
+        String score = "";
         String peptideSequence = spectrumItem.getPeptideRef();
         List<IonType> fragmentList = spectrumItem.getFragmentation().getIonType();
         String accessions = getAccessions(peptideSequence);
@@ -142,10 +142,11 @@ public class IonSeriesGenerator implements Callable {
         List<CvParam> parameterList = spectrumItem.getCvParam();
         for (CvParam parameter : parameterList) {
             if (parameter.getName().contains("PSM score")) {
-                psmScore = parameter.getValue();
+                score = parameter.getValue();
                 break;
             }
         }
+        Double peptideScore = Double.parseDouble(score);
         //Determine amino acid sequence length.
         Integer sequenceLength;
         if (peptideSequence.contains("_")) {
@@ -156,39 +157,53 @@ public class IonSeriesGenerator implements Callable {
         ArrayList<Integer> bIonIndices = new ArrayList<>(sequenceLength);
         ArrayList<Integer> yIonIndices = new ArrayList<>(sequenceLength);
         ArrayList<Integer> combinedIonIndices = new ArrayList<>(sequenceLength);
-        ArrayList<Integer> finalIndexList;
-        ArrayList<Integer> immoniumIndices = new ArrayList<>(sequenceLength);
+        ArrayList<Integer> combinedAllIonIndices = new ArrayList<>();
+        ArrayList<Integer> finalIndexList = new ArrayList<>();
         for (MzIdIonFragment ionFragment : ionFragmentList) {
             String name = ionFragment.getName();
             List<Integer> indexList = ionFragment.getIndexList();
             ArrayList<Boolean> intensityValues = ionFragment.getItensityValues();
             //Removes hits with different index and intensity counts. (size should be the same to process data.
-            if (intensityValues.size() == indexList.size()) {
+           if (intensityValues.size() == indexList.size()) {
                 for (int i = 0; i < indexList.size(); i++) {
                     Integer listIndex = indexList.get(i);
                     Integer sequenceIndex = listIndex;
                     if (intensityValues.get(i)) {
-                        if (name.contains("frag: y ion")) {
+                        if (name.matches("frag: y ion")) {
                             if (!yIonIndices.contains(sequenceIndex)) {
                                 yIonIndices.add(sequenceIndex);
                             }
+                            if (!combinedAllIonIndices.contains(sequenceIndex)) {
+                                combinedAllIonIndices.add(sequenceIndex);
+                            }
+                        } else if (name.matches("(frag: y ion -).*")) {
                             if (!combinedIonIndices.contains(sequenceIndex)) {
                                 combinedIonIndices.add(sequenceIndex);
                             }
-                        } else if (name.contains("frag: b ion")) {
+                            if (!combinedAllIonIndices.contains(sequenceIndex)) {
+                                combinedAllIonIndices.add(sequenceIndex);
+                            }
+                        } else if (name.matches("frag: b ion")) {
                             sequenceIndex = sequenceLength - listIndex;
                             if (!bIonIndices.contains(sequenceIndex)) {
                                 bIonIndices.add(sequenceIndex);
                             }
+                            if (!combinedAllIonIndices.contains(sequenceIndex)) {
+                                combinedAllIonIndices.add(sequenceIndex);
+                            }
+                        } else if (name.matches("(frag: b ion -).*")) {
                             if (!combinedIonIndices.contains(sequenceIndex)) {
                                 combinedIonIndices.add(sequenceIndex);
+                            }
+                            if (!combinedAllIonIndices.contains(sequenceIndex)) {
+                                combinedAllIonIndices.add(sequenceIndex);
                             }
                         } else if (name.contains("immonium")) {
                             if (!combinedIonIndices.contains(sequenceIndex)) {
                                 combinedIonIndices.add(sequenceIndex);
                             }
-                            if (!immoniumIndices.contains(sequenceIndex)) {
-                                immoniumIndices.add(sequenceIndex);
+                            if (!combinedAllIonIndices.contains(sequenceIndex)) {
+                                combinedAllIonIndices.add(sequenceIndex);
                             }
                         }
                     }
@@ -207,11 +222,12 @@ public class IonSeriesGenerator implements Callable {
         } else if (sequenceLength == combinedIonIndices.size()) {
             ionSerieFlag = 3;
             finalIndexList = combinedIonIndices;
-        } else {
-            finalIndexList = combinedIonIndices;
+        } else if (sequenceLength == combinedAllIonIndices.size()) {
+            ionSerieFlag = 4;
+            finalIndexList = combinedAllIonIndices;
         }
         Collections.sort(finalIndexList);
-        MatchedIonSeries ionSeries = new MatchedIonSeries(peptideSequence, psmScore, accessions, immoniumIndices, bIonIndices, yIonIndices, finalIndexList, ionSerieFlag);
+        MatchedIonSeries ionSeries = new MatchedIonSeries(peptideSequence, peptideScore, accessions, combinedIonIndices, bIonIndices, yIonIndices, combinedAllIonIndices, finalIndexList, ionSerieFlag);
         return ionSeries;
     }
 

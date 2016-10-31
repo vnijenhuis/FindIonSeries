@@ -59,11 +59,9 @@ public class IonSeriesCsvWriter {
         String header = "";
         header += "Peptide Sequence" + delimiter;
         header += "Peptide Score" + delimiter;
-        header += "#B-ions" + delimiter;
-        header += "#Y-ions" + delimiter;
-        header += "#Immonium-ions" + delimiter;
         header += "Complete Ion Series" + delimiter;
-        header += "Ion Series Flag" + lineEnding;
+        header += "Ion Series Flag" + delimiter;
+        header += "Protein Acessions" + lineEnding;
         return header;
     }
 
@@ -79,18 +77,17 @@ public class IonSeriesCsvWriter {
         String row = "";
         row += matchedIonSeries.getPeptideSequence() + delimiter;
         row += matchedIonSeries.getPeptideScore() + delimiter;
-        row += matchedIonSeries.getIonSeriesBIon().size() + delimiter;
-        row += matchedIonSeries.getIonSeriesYIon().size() + delimiter;
-        row += matchedIonSeries.getIonSeriesImmoniumIon().size() + delimiter;
-        for (int i = 0; i < matchedIonSeries.getIonSeriesIndexList().size(); i++) {
+        //Each index of the ion series is added and separated by a :
+        for (int i = 0; i < matchedIonSeries.getFinalIonSeries().size(); i++) {
             if (i == 0) {
-                row += matchedIonSeries.getIonSeriesIndexList().get(i);
+                row += matchedIonSeries.getFinalIonSeries().get(i);
             } else {
-                row += ":" + matchedIonSeries.getIonSeriesIndexList().get(i);
+                row += ":" + matchedIonSeries.getFinalIonSeries().get(i);
             }
         }
         row += delimiter;
-        row += matchedIonSeries.getIonSeriesFlag() + lineEnding;
+        row += matchedIonSeries.getIonSeriesFlag() + delimiter;
+        row += matchedIonSeries.getProteinAccessions() + lineEnding;
         return row;
     }
 }
